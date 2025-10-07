@@ -7,8 +7,9 @@ import sys
 import os
 
 # --- Configuration ---
-# IMPORTANT: CHANGE THIS TO YOUR ACTUAL SITE'S ROOT URL (e.g., 'https://connor.dev')
-TARGET_ROOT = "https://example.com"
+# IMPORTANT STEP 1: CHANGE THIS TO YOUR ACTUAL SITE'S ROOT URL. 
+# Example: "https://4uffin.github.io/my-project/"
+TARGET_ROOT = "https://4uffin.github.io/web-crawler/" 
 MAX_PAGES = 50  # Limit the crawl for safety and speed
 OUTPUT_FILE = "index.json"
 SNIPPET_LENGTH = 200
@@ -167,6 +168,14 @@ async def run_crawler():
 
 # Main entry point for the script
 if __name__ == "__main__":
+    # CRITICAL CHECK: Ensures the user has updated the target root URL.
+    if TARGET_ROOT == "YOUR_GITHUB_PAGES_URL_HERE":
+        print("-" * 50)
+        print("CRITICAL ERROR: TARGET_ROOT is still set to the default placeholder.")
+        print("Please update the TARGET_ROOT variable in crawler.py with your site's URL.")
+        print("-" * 50)
+        sys.exit(1)
+        
     # Ensure all URLs start with the target root for the crawl logic to work
     if not TARGET_ROOT.startswith("http"):
          print(f"FATAL: TARGET_ROOT must be a full URL (e.g., https://yoursite.com). Current: {TARGET_ROOT}")
