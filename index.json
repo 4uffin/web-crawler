@@ -1,9 +1,9 @@
 [
   {
-    "id": "https://example.com",
-    "title": "Example Domain",
-    "content": "Example Domain This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission. More information...",
-    "url": "https://example.com",
-    "snippet": "Example Domain This domain is for use in illustrative examples in documents. You may use this\n    domain in literature without prior coordination or asking for permission. More information..."
+    "id": "https://4uffin.github.io/web-crawler/",
+    "title": "GitHub Pages Search",
+    "content": "Start searching once the index loads.",
+    "url": "https://4uffin.github.io/web-crawler/",
+    "snippet": "Start searching once the index loads."
   }
 ]
