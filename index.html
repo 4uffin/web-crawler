@@ -1,180 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages Search</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Lunr.js (latest stable version) -->
-    <script src="https://cdn.jsdelivr.net/npm/lunr@2.3.9/lunr.min.js"></script>
-    <style>
-        /* Custom styles for aesthetic appeal */
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background-color: #f7f7fa;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Crawler Search Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lunr@2.3.9/lunr.min.js"></script>
+  <style>
+    /* Custom styles for aesthetic appeal */
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background-color: #f7f7fa;
+      /* Light, clean background */
+    }
+  </style>
 </head>
+
 <body class="p-4 sm:p-8 bg-gray-50">
 
-    <div class="max-w-3xl mx-auto">
-        
-        <header class="mb-8">
-            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Project Search Engine</h1>
-            <p class="text-gray-600">Client-side search powered by a scheduled Python crawler and Lunr.js.</p>
-        </header>
+  <div class="max-w-4xl mx-auto">
 
-        <!-- Search Input -->
-        <div class="mb-8 relative">
-            <input 
-                type="text" 
-                id="search-input" 
-                placeholder="Start typing to search your documentation or site..." 
-                class="w-full p-4 border border-gray-300 rounded-xl shadow-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 text-lg"
-                autofocus
-            >
-            <div id="loading-indicator" class="absolute right-4 top-1/2 -translate-y-1/2 hidden">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            </div>
-        </div>
+    <header class="mb-10 text-center">
+      <h1 class="text-5xl font-extrabold text-gray-900 mb-2 tracking-tight">🔎 Web-Crawler Search Engine</h1>
+      <p class="text-lg text-gray-600">Client-side search, powered by a scheduled Python web crawler and Lunr.js.</p>
+    </header>
 
-        <!-- Search Results -->
-        <div id="status-message" class="text-gray-600 italic mb-4">Initializing search...</div>
-        <ul id="results-list" class="bg-white rounded-xl shadow-xl divide-y divide-gray-100">
-            <!-- Search results will be inserted here -->
-        </ul>
-        
+    <div class="mb-6 relative">
+      <svg class="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input type="text" id="search-input" placeholder="Start typing to search your documentation or site..." class="w-full pl-14 pr-4 py-4 border border-gray-200 rounded-3xl shadow-xl focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg hover:border-blue-300" autofocus disabled>
+      <div id="loading-indicator" class="absolute right-4 top-1/2 -translate-y-1/2 hidden">
+        <svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('search-input');
-            const resultsList = document.getElementById('results-list');
-            const statusMessage = document.getElementById('status-message');
-            const loadingIndicator = document.getElementById('loading-indicator');
+    <div id="status-message" class="text-center text-sm text-gray-500 italic mb-6">Initializing search...</div>
 
-            let idx;      // Lunr index instance
-            let store = {}; // Data store (Map from ID to document)
+    <ul id="results-list" class="space-y-4">
+    </ul>
 
-            const INDEX_FILE = "index.json";
+  </div>
 
-            /**
-             * Initializes the Lunr index by fetching the JSON data.
-             */
-            async function initializeSearch() {
-                try {
-                    loadingIndicator.classList.remove('hidden');
-                    statusMessage.textContent = "Fetching site index...";
-                    
-                    const response = await fetch(INDEX_FILE);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const documents = await response.json();
-                    
-                    statusMessage.textContent = "Building search index...";
-
-                    // Build the Lunr index
-                    idx = lunr(function () {
-                        // The reference field, unique identifier for each document
-                        this.ref('id'); 
-                        
-                        // Fields to search over. Weights prioritize certain fields.
-                        this.field('title', { boost: 10 });
-                        this.field('content', { boost: 1 });
-                        this.field('url');
-                        
-                        // Add each document to the index
-                        documents.forEach(doc => {
-                            // Store the full document data (title, url, snippet) separately
-                            store[doc.id] = doc; 
-                            this.add(doc);
-                        });
-                    });
-
-                    statusMessage.textContent = `Index ready! (${documents.length} pages indexed).`;
-                    searchInput.disabled = false;
-                    searchInput.focus();
-
-                } catch (error) {
-                    statusMessage.textContent = `Error loading or building index: ${error.message}. Please ensure ${INDEX_FILE} exists and is valid JSON.`;
-                    console.error("Search Initialization Error:", error);
-                } finally {
-                    loadingIndicator.classList.add('hidden');
-                }
-            }
-
-            /**
-             * Performs the search based on the input query.
-             */
-            function handleSearch() {
-                const query = searchInput.value.trim();
-                resultsList.innerHTML = '';
-                
-                if (!idx) {
-                    statusMessage.textContent = "Search index is not ready yet.";
-                    return;
-                }
-                
-                if (query.length === 0) {
-                    statusMessage.textContent = `Index ready! (${Object.keys(store).length} pages indexed).`;
-                    return;
-                }
-
-                // Show loading indicator briefly while searching
-                loadingIndicator.classList.remove('hidden');
-                
-                // Perform the search using Lunr's search method
-                const results = idx.search(query); 
-                
-                loadingIndicator.classList.add('hidden');
-
-                if (results.length === 0) {
-                    statusMessage.textContent = `No results found for "${query}"`;
-                } else {
-                    statusMessage.textContent = `${results.length} result(s) found for "${query}"`;
-                    
-                    results.forEach(result => {
-                        const item = store[result.ref];
-                        if (item) {
-                            const li = document.createElement('li');
-                            li.className = 'border-b border-gray-100 last:border-b-0 py-4 px-6 hover:bg-gray-50 transition-colors rounded-xl';
-                            
-                            // Extract URL path for display (removes the full domain part)
-                            const displayUrl = item.url.replace(/https?:\/\/[^\/]+/i, '');
-                            
-                            li.innerHTML = `
-                                <a href="${item.url}" class="group block">
-                                    <h3 class="text-xl font-semibold text-blue-700 group-hover:text-blue-900 transition-colors">
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('search-input');
+      const resultsList = document.getElementById('results-list');
+      const statusMessage = document.getElementById('status-message');
+      const loadingIndicator = document.getElementById('loading-indicator');
+      let idx; // Lunr index instance
+      let store = {}; // Data store (Map from ID to document)
+      const INDEX_FILE = "index.json";
+      /**
+       * Initializes the Lunr index by fetching the JSON data.
+       */
+      async function initializeSearch() {
+        // Ensure search is disabled until index is ready
+        searchInput.disabled = true;
+        try {
+          loadingIndicator.classList.remove('hidden');
+          statusMessage.textContent = "Fetching site index...";
+          const response = await fetch(INDEX_FILE);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const documents = await response.json();
+          statusMessage.textContent = "Building search index...";
+          // Build the Lunr index
+          idx = lunr(function() {
+            // The reference field, unique identifier for each document
+            this.ref('id');
+            // Fields to search over. Weights prioritize certain fields.
+            this.field('title', {
+              boost: 10
+            });
+            this.field('content', {
+              boost: 1
+            });
+            this.field('url');
+            // Add each document to the index
+            documents.forEach(doc => {
+              // Store the full document data (title, url, snippet) separately
+              store[doc.id] = doc;
+              this.add(doc);
+            });
+          });
+          statusMessage.textContent = `Index ready! (${documents.length} pages indexed). Start typing to search.`;
+          searchInput.disabled = false; // Enable search field
+          searchInput.focus();
+        } catch (error) {
+          statusMessage.textContent = `Error loading or building index: ${error.message}. Please ensure ${INDEX_FILE} exists and is valid JSON.`;
+          console.error("Search Initialization Error:", error);
+        } finally {
+          loadingIndicator.classList.add('hidden');
+        }
+      }
+      /**
+       * Performs the search based on the input query.
+       */
+      function handleSearch() {
+        const query = searchInput.value.trim();
+        resultsList.innerHTML = '';
+        if (!idx) {
+          statusMessage.textContent = "Search index is not ready yet.";
+          return;
+        }
+        if (query.length === 0) {
+          statusMessage.textContent = `Index ready! (${Object.keys(store).length} pages indexed). Start typing to search.`;
+          // Clear previous results container styling when no query
+          resultsList.classList.remove('bg-white', 'rounded-xl', 'shadow-xl', 'divide-y', 'divide-gray-100', 'p-4');
+          return;
+        }
+        // Show loading indicator briefly while searching
+        loadingIndicator.classList.remove('hidden');
+        // Perform the search using Lunr's search method
+        const results = idx.search(query);
+        loadingIndicator.classList.add('hidden');
+        if (results.length === 0) {
+          statusMessage.textContent = `❌ No results found for "${query}". Try a different term.`;
+          resultsList.classList.remove('bg-white', 'rounded-xl', 'shadow-xl', 'divide-y', 'divide-gray-100', 'p-4');
+        } else {
+          statusMessage.textContent = `✨ ${results.length} result(s) found for "${query}"`;
+          // Add result container styling only when results are present
+          resultsList.classList.add('bg-white', 'rounded-xl', 'shadow-xl', 'divide-y', 'divide-gray-100', 'p-4');
+          results.forEach(result => {
+            const item = store[result.ref];
+            if (item) {
+              const li = document.createElement('li');
+              // Removed li.className and applied styles directly to the link/content
+              // Extract URL path for display (removes the full domain part)
+              const displayUrl = item.url.replace(/https?:\/\/[^\/]+/i, '');
+              li.innerHTML = `
+                                <a href="${item.url}" class="group block p-3 -m-3 rounded-lg hover:bg-gray-50 transition-colors duration-150">
+                                    <h3 class="text-xl font-semibold text-blue-700 group-hover:text-blue-600 transition-colors">
                                         ${item.title}
                                     </h3>
-                                    <p class="text-sm text-gray-500 mb-2 truncate">${displayUrl || '/'}</p>
+                                    <p class="text-sm text-blue-500 mb-1 truncate">${displayUrl || '/'}</p>
                                     <p class="text-gray-700 text-sm">${item.snippet}</p>
                                 </a>
                             `;
-                            resultsList.appendChild(li);
-                        }
-                    });
-                }
+              resultsList.appendChild(li);
             }
-
-            // Simple debounce function to prevent excessive calls while typing
-            let debounceTimer;
-            searchInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(handleSearch, 200);
-            });
-
-            // Start the initialization process
-            initializeSearch();
-        });
-    </script>
+          });
+        }
+      }
+      // Simple debounce function to prevent excessive calls while typing
+      let debounceTimer;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(handleSearch, 200);
+      });
+      // Start the initialization process
+      initializeSearch();
+    });
+  </script>
 </body>
+
 </html>
