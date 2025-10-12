@@ -42,8 +42,8 @@ fetch-depth: 0
   - name: 4. Run Python Crawler Script
     # Executes crawler.py, which generates index.json
     run: python crawler.py
-    env: # <--- CRITICAL UPDATE: Pass the target URL as an environment variable
-      CRAWLER_TARGET_URL: 'https://4uffin.github.io/web-crawler/' # <-- REPLACE with your site's root URL!
+    env: # <--- CRITICAL: Passes the target URL to the crawler.py script
+      CRAWLER_TARGET_URL: 'https://4uffin.github.io/web-crawler/' # <-- **IMPORTANT**: Change this to your site's root URL!
 
   - name: 5. Commit and Push new Index.json
     # This action automatically detects and commits new/changed files.
